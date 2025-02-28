@@ -17,10 +17,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = 'django-insecure-xxxxxx'
 
-DEBUG = False
+DEBUG = True
 
 # inquiry-system.onrender.com
-ALLOWED_HOSTS = ['inquiry-system.onrender.com']
+ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "localhost,inquiry-system.onrender.com").split(",")
 
 INSTALLED_APPS = [
     'django.contrib.admin',
