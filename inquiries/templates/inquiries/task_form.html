@@ -1,0 +1,38 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <title>{% if task %}タスク編集{% else %}新規タスク作成{% endif %}</title>
+    <link rel="stylesheet" href="{% static 'inquiries/css/style.css' %}">
+</head>
+
+<body>
+    <h1>{% if task %}タスク編集{% else %}新規タスク作成{% endif %}</h1>
+
+    <div class="form-container">
+        <form method="post">
+            {% csrf_token %}
+            <label for="id_title">タイトル:</label>
+            {{ form.title }}
+
+            <label for="id_description">詳細:</label>
+            {{ form.description }}
+
+            <label for="id_priority">優先度:</label>
+            {{ form.priority }}
+
+            <label for="id_deadline">締め切り:</label>
+            {{ form.deadline }}
+
+            <label for="id_status">ステータス:</label>
+            {{ form.status }}
+
+            <button type="submit" class="btn btn-primary">保存</button>
+        </form>
+        <a href="{% url 'task_list' %}" class="btn btn-secondary">戻る</a>
+    </div>
+</body>
+
+</html>

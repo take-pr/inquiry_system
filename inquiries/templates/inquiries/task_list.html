@@ -1,0 +1,131 @@
+{% load static %} 
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <title>タスク管理</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> <!-- Chart.js を追加 -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script> <!-- jQuery を追加 -->
+    <link rel="stylesheet" href="{% static 'inquiries/css/style.css' %}">  <!-- CSS を読み込む -->
+</head>
+
+<body>
+    <h1>タスク管理</h1>
+    <script src="{% static 'inquiries/js/tasks.js' %}"></script>  <!-- JS を読み込む -->
+
+    <div class="task-controls">
+        <a class="btn btn-add" href="{% url 'task_create' %}">＋ 新規タスク作成</a>
+        <a class="btn btn-home" href="{% url 'home' %}">ホームに戻る</a>  <!-- ホームへ戻るボタン追加 -->
+    </div>
+
+    <!-- フィルタリング機能 -->
+    <div class="filters">
+        <a href="{% url 'task_list' %}?status=all">すべてのタスク</a>
+        <a href="{% url 'task_list' %}?status=not_started">未着手</a>
+        <a href="{% url 'task_list' %}?status=in_progress">進行中</a>
+        <a href="{% url 'task_list' %}?status=done">完了</a>
+    </div>
+
+    <!-- 検索・ソート機能 -->
+    <div class="search-sort">
+        <form method="GET" action="{% url 'task_list' %}">
+            <input type="text" name="search" placeholder="タスク名で検索" value="{{ search_query }}">
+            <button type="submit">検索</button>
+        </form>
+
+        <form method="GET" action="{% url 'task_list' %}">
+            <select name="sort" onchange="this.form.submit()">
+                <option value="deadline" {% if sort_by == 'deadline' %}selected{% endif %}>締め切り順</option>
+                <option value="priority" {% if sort_by == 'priority' %}selected{% endif %}>優先度順</option>
+            </select>
+        </form>
+    </div>
+
+    <!-- タスク一覧 -->
+    <table class="task-table">
+        <thead>
+            <tr>
+                <th>タイトル</th>
+                <th>ステータス</th>
+                <th>優先度</th>
+                <th>締め切り</th>
+                <th>作成日時</th>
+                <th>更新日時</th>
+                <th>操作</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for task in tasks %}
+            <tr {% if task.is_urgent %}class="urgent-task" style="background-color: #ffcccc;"{% endif %}>  <!-- ✅ 色の適用 -->
+                <td>{{ task.title }}</td>
+                <td>{{ task.get_status_display }}</td>
+                <td>{{ task.get_priority_display }}</td>
+                <td>{{ task.deadline }}</td>
+                <td>{{ task.created_at }}</td>
+                <td>{{ task.updated_at }}</td>
+                <td>
+                    <a class="btn btn-edit" href="{% url 'task_edit' task.pk %}">編集</a>
+                    <a class="btn btn-delete" href="{% url 'task_delete' task.pk %}">削除</a>
+                    {% if task.status == 'not_started' %}
+                        <a class="btn btn-progress" href="{% url 'task_update_status' task.pk 'in_progress' %}">進行中にする</a>
+                    {% elif task.status == 'in_progress' %}
+                        <a class="btn btn-done" href="{% url 'task_update_status' task.pk 'done' %}">完了にする</a>
+                    {% elif task.status == 'done' %}
+                        <span class="completed">完了</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="7">タスクがありません。</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- ページネーション -->
+    <div class="pagination">
+        {% if tasks.has_previous %}
+            <a href="?page=1&sort={{ sort_by }}&status={{ filter_status }}">« 最初</a>
+            <a href="?page={{ tasks.previous_page_number }}&sort={{ sort_by }}&status={{ filter_status }}">‹ 前へ</a>
+        {% endif %}
+
+        <span>ページ {{ tasks.number }} / {{ tasks.paginator.num_pages }}</span>
+
+        {% if tasks.has_next %}
+            <a href="?page={{ tasks.next_page_number }}&sort={{ sort_by }}&status={{ filter_status }}">次へ ›</a>
+            <a href="?page={{ tasks.paginator.num_pages }}&sort={{ sort_by }}&status={{ filter_status }}">最後 »</a>
+        {% endif %}
+    </div>
+
+    <!-- 進捗状況グラフ -->
+    <h2>　ー タスクの進捗状況 ー</h2>
+    <canvas id="taskChart"></canvas>
+
+    <script>
+        async function fetchTaskStatusData() {
+            try {
+                const response = await fetch("{% url 'task_status_data' %}");
+                const data = await response.json();
+
+                const ctx = document.getElementById('taskChart').getContext('2d');
+                new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: Object.keys(data),
+                        datasets: [{
+                            label: 'タスクの進捗状況',
+                            data: Object.values(data),
+                            backgroundColor: ['red', 'yellow', 'green'],
+                        }]
+                    },
+                });
+            } catch (error) {
+                console.error("データの取得に失敗しました", error);
+            }
+        }
+        fetchTaskStatusData();
+    </script>
+</body>
+</html>

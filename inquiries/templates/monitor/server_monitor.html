@@ -1,0 +1,179 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>サーバー監視</title>
+    <link rel="stylesheet" href="{% static 'inquiries/css/style.css' %}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <h1>サーバー監視</h1>
+    
+    <div class="monitor-container">
+        <h2>📊 システムリソース使用率</h2>
+        
+        <!-- CPU・メモリ・ディスク使用率のグラフ（白枠の中に配置） -->
+        <div class="graph-wrapper">
+            <div class="graph-row">
+                <div class="graph-box">
+                    <h3>CPU 使用率</h3>
+                    <canvas id="cpuChart"></canvas>
+                </div>
+                <div class="graph-box">
+                    <h3>メモリ使用率</h3>
+                    <canvas id="memoryChart"></canvas>
+                </div>
+            </div>
+            <div class="graph-box disk-center">
+                <h3>ディスク使用率</h3>
+                <canvas id="diskChart"></canvas>
+            </div>
+        </div>
+
+        
+
+
+        <div class="monitor-section">
+            <p><strong>CPU 使用率:</strong> <span id="cpu_usage">取得中...</span>%</p>
+            <p><strong>メモリ使用率:</strong> <span id="memory_usage">取得中...</span>%</p>
+            <p><strong>ディスク使用率:</strong> <span id="disk_percent">取得中...</span>%</p>
+            <p><strong>空き容量:</strong> <span id="disk_free">取得中...</span> GB / <span id="disk_total">取得中...</span> GB</p>
+        </div>
+
+        <!-- ネットワーク監視 -->
+        <h3>🌐 ネットワーク使用状況</h3>
+        <p><strong>送信データ:</strong> <span id="net_sent">取得中...</span> MB</p>
+        <p><strong>受信データ:</strong> <span id="net_recv">取得中...</span> MB</p>
+
+        <!-- プロセス監視 -->
+        <h3>🔍 実行中のプロセス</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>PID</th>
+                    <th>プロセス名</th>
+                    <th>CPU使用率</th>
+                    <th>メモリ使用率</th>
+                </tr>
+            </thead>
+            <tbody id="process-list">
+                <tr><td colspan="4">取得中...</td></tr>
+            </tbody>
+        </table>
+
+        <!-- エラーログ監視 -->
+        <h3>⚠️ エラーログ</h3>
+        <pre id="error_logs">取得中...</pre>
+
+        <!-- アラート表示 -->
+        <div id="alert-box" class="alert-box" style="display: none;">
+            ⚠️ 高負荷状態！ CPU・メモリ・ディスクの使用率が90%を超えました！
+        </div>
+    </div>
+
+    <!-- ホームに戻るボタン -->
+    <div class="home-button">
+        <a class="btn btn-home" href="{% url 'home' %}">ホームへ戻る</a>
+    </div>
+
+    <script>
+        let cpuChart, memoryChart, diskChart;
+
+        async function fetchServerData() {
+            try {
+                const response = await fetch("{% url 'get_system_stats' %}");
+                const data = await response.json();
+
+                // CPU・メモリ・ディスク使用率の更新
+                document.getElementById("cpu_usage").textContent = data.cpu_usage;
+                document.getElementById("memory_usage").textContent = data.memory_usage;
+                document.getElementById("disk_percent").textContent = data.disk_percent;
+                document.getElementById("disk_free").textContent = data.disk_free;
+                document.getElementById("disk_total").textContent = data.disk_total;
+
+                // ネットワーク通信量の更新
+                document.getElementById("net_sent").textContent = data.bytes_sent;
+                document.getElementById("net_recv").textContent = data.bytes_recv;
+
+                // プロセス一覧の更新
+                let processHtml = "";
+                data.processes.forEach(proc => {
+                    processHtml += `<tr>
+                        <td>${proc.pid}</td>
+                        <td>${proc.name}</td>
+                        <td>${proc.cpu_percent}%</td>
+                        <td>${proc.memory_percent}%</td>
+                    </tr>`;
+                });
+                document.getElementById("process-list").innerHTML = processHtml;
+
+                // エラーログの更新
+                document.getElementById("error_logs").textContent = data.error_logs;
+
+                // アラート表示（90%以上）
+                const alertBox = document.getElementById("alert-box");
+                if (data.cpu_usage >= 90 || data.memory_usage >= 90 || data.disk_percent >= 90) {
+                    alertBox.style.display = "block";
+                } else {
+                    alertBox.style.display = "none";
+                }
+
+                // グラフを更新
+                updateCharts(data.cpu_usage, data.memory_usage, data.disk_percent);
+
+            } catch (error) {
+                console.error("データの取得に失敗しました:", error);
+            }
+        }
+
+        function updateCharts(cpuUsage, memoryUsage, diskUsage) {
+            const ctxCpu = document.getElementById('cpuChart').getContext('2d');
+            const ctxMemory = document.getElementById('memoryChart').getContext('2d');
+            const ctxDisk = document.getElementById('diskChart').getContext('2d');
+
+            if (!cpuChart) {
+                cpuChart = new Chart(ctxCpu, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['使用中', '空き'],
+                        datasets: [{ data: [cpuUsage, 100 - cpuUsage], backgroundColor: ['red', 'lightgray'] }]
+                    }
+                });
+            } else {
+                cpuChart.data.datasets[0].data = [cpuUsage, 100 - cpuUsage];
+                cpuChart.update();
+            }
+
+            if (!memoryChart) {
+                memoryChart = new Chart(ctxMemory, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['使用中', '空き'],
+                        datasets: [{ data: [memoryUsage, 100 - memoryUsage], backgroundColor: ['blue', 'lightgray'] }]
+                    }
+                });
+            } else {
+                memoryChart.data.datasets[0].data = [memoryUsage, 100 - memoryUsage];
+                memoryChart.update();
+            }
+
+            if (!diskChart) {
+                diskChart = new Chart(ctxDisk, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['使用中', '空き'],
+                        datasets: [{ data: [diskUsage, 100 - diskUsage], backgroundColor: ['purple', 'lightgray'] }]
+                    }
+                });
+            } else {
+                diskChart.data.datasets[0].data = [diskUsage, 100 - diskUsage];
+                diskChart.update();
+            }
+        }
+
+        fetchServerData();
+        setInterval(fetchServerData, 5000);
+    </script>
+</body>
+</html>

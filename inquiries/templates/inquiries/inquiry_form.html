@@ -1,0 +1,32 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <title>問い合わせフォーム</title>
+    <link rel="stylesheet" href="{% static 'inquiries/css/style.css' %}">
+</head>
+
+<body>
+    <h1>問い合わせフォーム</h1>
+
+    <div class="form-container">
+        <form method="post">
+            {% csrf_token %}
+            <label for="id_name">お名前:</label>
+            {{ form.name }}
+
+            <label for="id_email">メールアドレス:</label>
+            {{ form.email }}
+
+            <label for="id_message">お問い合わせ内容:</label>
+            {{ form.message }}
+
+            <button type="submit" class="btn btn-primary">送信</button>
+        </form>
+        <a href="{% url 'home' %}" class="btn btn-secondary">ホームに戻る</a>
+    </div>
+</body>
+
+</html>

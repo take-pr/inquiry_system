@@ -1,0 +1,26 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <title>タスク削除確認</title>
+    <link rel="stylesheet" href="{% static 'inquiries/css/style.css' %}">
+</head>
+
+<body>
+    <h1>タスク削除確認</h1>
+
+    <div class="form-container">
+        <p>本当に「{{ task.title }}」を削除しますか？</p>
+
+        <form method="post">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger">削除</button>
+        </form>
+
+        <a href="{% url 'task_list' %}" class="btn btn-secondary">キャンセル</a>
+    </div>
+</body>
+
+</html>

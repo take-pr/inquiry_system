@@ -1,0 +1,18 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <title>ログアウトしました</title>
+    <link rel="stylesheet" href="{% static 'inquiries/css/style.css' %}">
+</head>
+
+<body>
+    <h1>🚪 ログアウト完了</h1>
+    <p>正常にログアウトしました。</p>
+    <a class="btn btn-home" href="{% url 'home' %}">🏠 ホームへ戻る</a>
+    <a class="btn btn-login" href="{% url 'login' %}">🔑 ログイン</a>
+</body>
+
+</html>

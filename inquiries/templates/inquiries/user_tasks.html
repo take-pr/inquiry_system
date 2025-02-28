@@ -1,0 +1,50 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>マイタスク一覧</title>
+    <link rel="stylesheet" href="{% static 'inquiries/css/style.css' %}">
+</head>
+<body>
+    <h1>マイタスク一覧</h1>
+
+    <div class="task-container">
+        {% if tasks %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>タイトル</th>
+                        <th>優先度</th>
+                        <th>締め切り</th>
+                        <th>ステータス</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for task in tasks %}
+                        <tr>
+                            <td>{{ task.title }}</td>
+                            <td>{{ task.get_priority_display }}</td>
+                            <td>{{ task.deadline|default:"-" }}</td>
+                            <td>{{ task.get_status_display }}</td>
+                            <td>
+                                <a href="{% url 'task_detail' task.pk %}">詳細</a> |
+                                <a href="{% url 'task_edit' task.pk %}">編集</a> |
+                                <form action="{% url 'task_delete' task.pk %}" method="POST" style="display:inline;">
+                                    {% csrf_token %}
+                                    <button type="submit" onclick="return confirm('削除しますか？')">削除</button>
+                                </form>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p>タスクがありません。</p>
+        {% endif %}
+    </div>
+
+    <a class="btn btn-home" href="{% url 'home' %}">ホームへ戻る</a>
+</body>
+</html>

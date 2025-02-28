@@ -1,0 +1,38 @@
+{% load static %} 
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}ホーム{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'inquiries/css/style.css' %}">
+</head>
+
+<body>
+    <h1>ホーム</h1>
+
+    <!-- ユーザー情報（ログイン状態を判定） -->
+    <div class="auth-container">
+        {% if user.is_authenticated %}
+            <p>ようこそ、<strong>{{ user.username }}</strong> さん</p>
+            <a class="btn btn-logout" href="{% url 'logout' %}">🚪 ログアウト</a>
+        {% else %}
+            <a class="btn btn-login" href="{% url 'login' %}">🔑 ログイン</a>
+            <a class="btn btn-register" href="{% url 'register' %}">🆕 新規登録</a>
+        {% endif %}
+    </div>
+
+    <div class="home-container">
+        <a class="btn btn-inquiry" href="{% url 'inquiry' %}">📩 問い合わせ</a>
+        <a class="btn btn-task" href="{% url 'task_list' %}">📋 タスク管理</a>
+        <a class="btn btn-monitoring" href="{% url 'server_monitor' %}">📊 サーバー監視</a>
+    </div>
+
+    <!-- ここに各ページのコンテンツを表示 -->
+    <div class="content-container">
+        {% block content %}
+        {% endblock %}
+    </div>
+</body>
+
+</html>

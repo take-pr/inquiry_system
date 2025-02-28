@@ -1,0 +1,25 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <title>タスク詳細</title>
+</head>
+
+<body>
+    <h1>タスク詳細</h1>
+    <p><strong>タイトル:</strong> {{ task.title }}</p>
+    <p><strong>詳細:</strong> {{ task.description }}</p>
+    <p><strong>優先度:</strong> {{ task.get_priority_display }}</p>
+    <p><strong>締め切り:</strong> {{ task.deadline }}</p>
+    <p><strong>ステータス:</strong> {{ task.get_status_display }}</p>
+    <p><strong>作成日時:</strong> {{ task.created_at }}</p>
+    <p><strong>更新日時:</strong> {{ task.updated_at }}</p>
+
+    <a href="{% url 'task_edit' task.pk %}">編集</a>
+    <a href="{% url 'task_delete' task.pk %}">削除</a>
+    <a href="{% url 'task_list' %}">戻る</a>
+</body>
+
+</html>

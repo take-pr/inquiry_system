@@ -1,0 +1,20 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <title>送信完了</title>
+    <link rel="stylesheet" href="{% static 'inquiries/css/style.css' %}">
+</head>
+
+<body>
+    <h1>お問い合わせを受け付けました</h1>
+
+    <div class="form-container">
+        <p>お問い合わせいただきありがとうございます。後ほど担当者よりご連絡いたします。</p>
+        <a href="{% url 'home' %}" class="btn btn-primary">ホームに戻る</a>
+    </div>
+</body>
+
+</html>
