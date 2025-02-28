@@ -6,4 +6,4 @@ setuptools==75.8.0
 sqlparse==0.5.3
 tzdata==2025.1
 wheel==0.45.1
-gunicorn
+whitenoise==6.9.0
